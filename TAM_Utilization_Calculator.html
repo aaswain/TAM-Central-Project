@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TAM Hour Utilization Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:      #002B5C;
+    --blue:      #005B99;
+    --blue-light:#E8F1FA;
+    --green-bg:  #C6EFCE;
+    --green-fg:  #276221;
+    --yellow-bg: #FFEB9C;
+    --yellow-fg: #9C5700;
+    --red-bg:    #FFC7CE;
+    --red-fg:    #9C0006;
+    --gray-100:  #F5F5F5;
+    --gray-200:  #E8E8E8;
+    --gray-400:  #AAAAAA;
+    --gray-700:  #444444;
+    --text:      #1A1A1A;
+    --radius:    10px;
+    --shadow:    0 2px 12px rgba(0,0,0,0.08);
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #F0F4F9;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 1rem;
+    color: var(--text);
+  }
+
+  .wrapper { width: 100%; max-width: 560px; }
+
+  /* Header */
+  .header {
+    background: var(--navy);
+    border-radius: var(--radius) var(--radius) 0 0;
+    padding: 1.5rem 1.75rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .header-logo {
+    width: 36px; height: 36px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .header-text h1 { font-size: 16px; font-weight: 600; color: #fff; letter-spacing: -0.01em; }
+  .header-text p  { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 2px; }
+
+  /* Body card */
+  .body {
+    background: #fff;
+    border-radius: 0 0 var(--radius) var(--radius);
+    padding: 1.75rem;
+    box-shadow: var(--shadow);
+  }
+
+  /* Threshold legend */
+  .legend {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .legend-pill {
+    font-size: 11px; font-weight: 500;
+    padding: 4px 10px; border-radius: 20px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Inputs */
+  .inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.5rem; }
+  .input-group label {
+    display: block; font-size: 12px; font-weight: 500;
+    color: var(--gray-700); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .input-group input {
+    width: 100%; padding: 10px 12px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 8px; font-size: 16px; font-weight: 500;
+    font-family: 'DM Mono', monospace;
+    color: var(--text); background: var(--gray-100);
+    transition: border-color 0.15s;
+    outline: none;
+  }
+  .input-group input:focus { border-color: var(--blue); background: #fff; }
+
+  /* Metrics grid */
+  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
+  .metric {
+    background: var(--gray-100); border-radius: 8px;
+    padding: 0.875rem 1rem;
+  }
+  .metric-label { font-size: 11px; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .metric-value { font-size: 20px; font-weight: 600; font-family: 'DM Mono', monospace; color: var(--text); }
+
+  /* Action banner */
+  .action-banner {
+    border-radius: 8px; padding: 0.875rem 1rem;
+    margin-bottom: 1.25rem; font-size: 13px; font-weight: 500;
+    border-left: 3px solid transparent;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  /* Divider */
+  .divider { border: none; border-top: 1px solid var(--gray-200); margin: 1.25rem 0; }
+
+  /* Output section */
+  .output-label {
+    font-size: 11px; font-weight: 500; color: var(--gray-400);
+    text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;
+  }
+  .output-box {
+    border-radius: 8px; padding: 1rem 1.25rem;
+    border: 1.5px solid var(--gray-200);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .output-value {
+    font-size: 15px; font-weight: 700;
+    font-family: 'DM Mono', monospace;
+    color: var(--text); flex: 1;
+    letter-spacing: 0.01em;
+  }
+  .copy-btn {
+    flex-shrink: 0;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px; font-weight: 500;
+    padding: 7px 16px; border-radius: 6px;
+    border: 1.5px solid var(--gray-200);
+    background: #fff; color: var(--gray-700);
+    cursor: pointer; transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .copy-btn:hover { background: var(--gray-100); border-color: var(--gray-400); }
+  .copy-btn.copied { background: var(--green-bg); color: var(--green-fg); border-color: var(--green-bg); }
+
+  /* Footer */
+  .footer {
+    text-align: center; margin-top: 1rem;
+    font-size: 11px; color: var(--gray-400);
+  }
+
+  /* Confluence section */
+  .confluence-section {
+    margin-top: 1.5rem; padding-top: 1.25rem;
+    border-top: 1px solid var(--gray-200);
+  }
+  .confluence-label {
+    font-size: 11px; font-weight: 500; color: var(--gray-400);
+    text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;
+  }
+  .confluence-box {
+    background: var(--gray-100); border-radius: 8px;
+    padding: 0.875rem 1rem; position: relative;
+  }
+  .confluence-code {
+    font-family: 'DM Mono', monospace; font-size: 12px;
+    color: var(--navy); line-height: 1.6; white-space: pre-wrap; word-break: break-all;
+  }
+  .confluence-copy {
+    margin-top: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px; font-weight: 500;
+    padding: 6px 14px; border-radius: 6px;
+    border: 1.5px solid var(--gray-200);
+    background: #fff; color: var(--gray-700);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .confluence-copy:hover { background: var(--gray-100); }
+  .confluence-copy.copied { background: var(--green-bg); color: var(--green-fg); border-color: var(--green-bg); }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <div class="header">
+    <div class="header-logo">⏱</div>
+    <div class="header-text">
+      <h1>TAM Hour Utilization Calculator</h1>
+      <p>Optimizely · TAM Project Management</p>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <!-- Legend -->
+    <div class="legend">
+      <span class="legend-pill" style="background:var(--green-bg);color:var(--green-fg);">🟢 On Track — within ±15%</span>
+      <span class="legend-pill" style="background:var(--yellow-bg);color:var(--yellow-fg);">🟡 Under-Utilized — below −15%</span>
+      <span class="legend-pill" style="background:var(--red-bg);color:var(--red-fg);">🔴 Over-Utilized — above +15%</span>
+    </div>
+
+    <!-- Inputs -->
+    <div class="inputs">
+      <div class="input-group">
+        <label>Monthly allocation (hrs)</label>
+        <input type="number" id="monthly" value="4" min="0" step="0.5" oninput="calculate()">
+      </div>
+      <div class="input-group">
+        <label>Actual hours (last 3 months)</label>
+        <input type="number" id="actual" value="9.25" min="0" step="0.25" oninput="calculate()">
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-label">Expected (3 months)</div>
+        <div class="metric-value" id="expected">12 hrs</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Actual % utilized</div>
+        <div class="metric-value" id="pct">77.1%</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Gap vs expected</div>
+        <div class="metric-value" id="gap">−22.9%</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Status</div>
+        <div class="metric-value" id="status-text" style="font-size:14px;">🟡 Under-Utilized</div>
+      </div>
+    </div>
+
+    <!-- Action banner -->
+    <div class="action-banner" id="action-banner">
+      <span id="action-text">Needs attention — not engaging at the expected rate. Follow up with TAM Coordinator.</span>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Confluence output -->
+    <div class="output-label">Confluence table output — copy &amp; paste</div>
+    <div class="output-box" id="output-box">
+      <span class="output-value" id="output-text">9.25 hrs → 77.1% → 🟡 Under-Utilized</span>
+      <button class="copy-btn" id="copy-btn" onclick="copyOutput()">Copy</button>
+    </div>
+
+    <!-- Confluence HTML macro -->
+    <div class="confluence-section">
+      <div class="confluence-label">Confluence HTML macro embed code</div>
+      <div class="confluence-box">
+        <div class="confluence-code" id="confluence-code"></div>
+      </div>
+      <button class="confluence-copy" id="confluence-copy-btn" onclick="copyConfluence()">Copy embed code</button>
+    </div>
+
+  </div>
+
+  <div class="footer">TAM Project Management · Optimizely · ±15% threshold logic</div>
+
+</div>
+
+<script>
+function calculate() {
+  const monthly  = parseFloat(document.getElementById('monthly').value) || 0;
+  const actual   = parseFloat(document.getElementById('actual').value)  || 0;
+  const expected = monthly * 3;
+  const pct      = expected > 0 ? (actual / expected) * 100 : 0;
+  const gap      = pct - 100;
+
+  let status, emoji, bgColor, fgColor, borderColor, actionText;
+
+  if (gap > 15) {
+    status      = 'Over-Utilized';
+    emoji       = '🔴';
+    bgColor     = '#FFF0F0';
+    fgColor     = '#9C0006';
+    borderColor = '#9C0006';
+    actionText  = 'Escalate — burning hours too fast. Review scope creep and align with CSM immediately.';
+  } else if (gap < -15) {
+    status      = 'Under-Utilized';
+    emoji       = '🟡';
+    bgColor     = '#FFFBF0';
+    fgColor     = '#9C5700';
+    borderColor = '#E6A817';
+    actionText  = 'Needs attention — not engaging at the expected rate. Follow up with TAM Coordinator.';
+  } else {
+    status      = 'On Track';
+    emoji       = '🟢';
+    bgColor     = '#F0FFF4';
+    fgColor     = '#276221';
+    borderColor = '#4CAF50';
+    actionText  = 'Pacing well against contract timeline. No action required.';
+  }
+
+  const expStr    = expected % 1 === 0 ? expected + ' hrs' : expected.toFixed(2) + ' hrs';
+  const pctStr    = pct.toFixed(1) + '%';
+  const gapStr    = (gap >= 0 ? '+' : '−') + Math.abs(gap).toFixed(1) + '%';
+  const outputStr = `${actual} hrs → ${pctStr} → ${emoji} ${status}`;
+
+  document.getElementById('expected').textContent    = expStr;
+  document.getElementById('pct').textContent         = pctStr;
+  document.getElementById('gap').textContent         = gapStr;
+  document.getElementById('status-text').textContent = `${emoji} ${status}`;
+  document.getElementById('status-text').style.color = fgColor;
+  document.getElementById('action-text').textContent = actionText;
+
+  const banner = document.getElementById('action-banner');
+  banner.style.background   = bgColor;
+  banner.style.borderColor  = borderColor;
+  banner.style.color        = fgColor;
+
+  const box = document.getElementById('output-box');
+  box.style.background   = bgColor;
+  box.style.borderColor  = borderColor;
+
+  document.getElementById('output-text').textContent = outputStr;
+
+  // Confluence embed snippet
+  const embedCode = `<ac:structured-macro ac:name="html">\n  <ac:plain-text-body><![CDATA[\n    <span style="font-family:monospace;">${outputStr}</span>\n  ]]></ac:plain-text-body>\n</ac:structured-macro>`;
+  document.getElementById('confluence-code').textContent = embedCode;
+}
+
+function copyOutput() {
+  const text = document.getElementById('output-text').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = 'Copied ✓';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+  });
+}
+
+function copyConfluence() {
+  const text = document.getElementById('confluence-code').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('confluence-copy-btn');
+    btn.textContent = 'Copied ✓';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy embed code'; btn.classList.remove('copied'); }, 1800);
+  });
+}
+
+calculate();
+</script>
+</body>
+</html>
